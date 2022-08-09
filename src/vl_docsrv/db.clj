@@ -5,4 +5,5 @@
 (defn config [opts] (cf/config opts))
 
 (defn get-doc [id db]
+  (prn id)
   (db/get-doc id db))
