@@ -25,6 +25,7 @@
            
            :dev {:extra-paths ["src" "resources"]
                  :extra-deps {de.ptb.gitlab1/libcdb {:local/root "../libcdb"}
+                              org.clojars.wactbprot/vl-data-insert {:mvn/version "0.2.1"}
                               http-kit/http-kit {:mvn/version "2.6.0"}
                               compojure/compojure {:mvn/version "1.7.0"}
                               djblue/portal {:mvn/version "0.18.0"}

@@ -3,6 +3,7 @@
     :doc "Starts a http-server at localhost:9992."}
   (:require
    [vl-docsrv.db :as db]
+   [vl-docsrv.handler :as h]
    [compojure.core :refer [defroutes GET POST]]
    [compojure.route :as route]
    [compojure.handler :as handler]
@@ -10,9 +11,7 @@
    [integrant.core :as ig]
    [ring.util.response :as res]
    [ring.middleware.json :as middleware]
-   [com.brunobonacci.mulog :as µ])
-  (:gen-class))
-
+   [com.brunobonacci.mulog :as µ]))
 
 (def config
   {:log/mulog {:type :multi
@@ -29,17 +28,25 @@
               :usr (System/getenv "CAL_USR")
               :pwd (System/getenv "CAL_PWD")
               :name "vl_db_work"}
-   :endpoint/results {:db (ig/ref :db/couch)}
+   :system/agent {:ini {}}
+   :endpoint/results {:db (ig/ref :db/couch)
+                      :agnt (ig/ref :system/agent)}
    :server/http-kit {:port 9992
                    :join? false
                    :handler (ig/ref :endpoint/results)}})
 
-(defn proc [db]
+(defn proc [db agnt]
   (POST "/:id" [id :as req]
-        (res/response (db/get-doc id db))))
+        (send agnt (fn [m]
+                     (let [doc (db/get-doc id db)
+                           put-fn (fn [doc] (db/put-doc doc db))
+                           data   (-> req :body)]
+                       (assoc m id (h/store-data doc data put-fn)))))
+        (await agnt)
+        (res/response (get @agnt id))))
 
-(defmethod ig/init-key :endpoint/results [_ {:keys [db]}]
-  (proc db))
+(defmethod ig/init-key :endpoint/results [_ {:keys [db agnt]}]
+  (proc db agnt))
 
 (defmethod ig/init-key :log/mulog [_ opts]  
   (µ/set-global-context! (:log-context opts))
@@ -47,6 +54,10 @@
 
 (defmethod ig/init-key :db/couch [_ opts]
   (db/config opts))
+
+
+(defmethod ig/init-key :system/agent [_ {:keys [ini]}]
+  (agent ini))
 
 (defmethod ig/init-key :server/http-kit [_ {:keys [handler] :as opts}]
   (run-server (-> handler
@@ -61,10 +72,13 @@
 (defmethod ig/halt-key! :log/mulog [_ logger]
   (logger))
 
+(defmethod ig/halt-key! :system/agent [_ a]
+  (send a (fn [_] {})))
 
-(def sys (atom nil))
 
-(defn start [ids]
+(defonce sys (atom nil))
+
+(defn start []
   (keys (reset! sys (ig/init config))))
 
 (defn stop []

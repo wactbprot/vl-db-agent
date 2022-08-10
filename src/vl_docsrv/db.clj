@@ -4,6 +4,6 @@
 
 (defn config [opts] (cf/config opts))
 
-(defn get-doc [id db]
-  (prn id)
-  (db/get-doc id db))
+(defn get-doc [id db] (db/get-doc id db))
+
+(defn put-doc [doc db] (db/put-doc doc db))
