@@ -17,7 +17,7 @@
 ;; ...................................................
 ;; system
 ;; ...................................................
-(defonce sys (atom nil))
+(defonce system (atom nil))
 
 
 ;; ...................................................
@@ -145,15 +145,15 @@
 ;; start system
 ;; ...................................................
 (defn start []
-  (keys (reset! sys (ig/init config))))
+  (keys (reset! system (ig/init config))))
 
 
 ;; ...................................................
 ;; stop system
 ;; ...................................................
 (defn stop []
-  (ig/halt! @sys)
-  (reset! sys {}))
+  (ig/halt! @system)
+  (reset! system {}))
 
 (comment
   (start)
