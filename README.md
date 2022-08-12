@@ -33,3 +33,14 @@ and use it this way
 ```shell
 curl -H "$H" -d "$D" -X POST $URL/cal-2022-se3-pn-4025_0007 --noproxy "*"
 ```
+
+
+
+## Generate api docs
+
+copy `vendor` folder from [marginalia](https://github.com/wactbprot/marginalia) to `resources` folder. Next run:
+
+
+```shell
+clojure -X:dev:docs
+```
