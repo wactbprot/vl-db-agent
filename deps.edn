@@ -13,8 +13,8 @@
            :build {:deps {io.github.clojure/tools.build {:git/tag "v0.7.5" :git/sha "34727f7"}}
                    :ns-default build}
 
-           :docs {:extra-deps {zilti/marginalia {:git/url "https://github.com/zilti/marginalia"
-                                           :git/sha "a9046a3e72184db871fb00140e851cb14328e7b2"}}
+           :docs {:extra-deps {zilti/marginalia {:git/url "https://github.com/wactbprot/marginalia"
+                                           :git/sha "0f47c0e8167807225bc4c4dfc1b0a49d80b82648"}}
                   :main-opts ["-m" "marginalia.core" "-n" "vl-docsrv"]
                   :exec-fn marginalia.core/run-marginalia}
            

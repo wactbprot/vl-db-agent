@@ -59,9 +59,7 @@
 ;; library [libcdb](https://gitlab1.ptb.de/vaclab/vl-db)
 
 (defn db-config [opts] (cf/config opts))
-
 (defn get-doc [id db] (db/get-doc id db))
-
 (defn put-doc [doc db] (db/put-doc doc db))
 
 ;; ## Handler

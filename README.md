@@ -6,7 +6,7 @@ documents. There is a small chance that conflicts occur due to
 uncoordinated writing.  vl-docsrv provides an API for coordinated
 writing of vaclab style measurement results to calibration documents.
 
-
+[⇨ documentation](https://a75438.berlin.ptb.de/vl-docsrv/docs/uberdoc.html)
 
 Set
 
@@ -43,4 +43,11 @@ copy `vendor` folder from [marginalia](https://github.com/wactbprot/marginalia) 
 
 ```shell
 clojure -X:dev:docs
+```
+
+
+upload:
+
+```shell
+scp -r docs/ bock04@a75438://var/www/html/vl-docsrv/
 ```
