@@ -19,7 +19,8 @@
              [org.httpkit.server :refer [run-server]]            
              [ring.util.response :as res]
              [ring.middleware.json :as middleware]
-             [vl-data-insert.core :as i]))
+             [vl-data-insert.core :as i])
+  (:gen-class))
 
 
 ;; ## Configuration
@@ -216,6 +217,9 @@
   (reset! system {}))
 
 (defn restart [] (stop) (start))
+
+(defn -main [& args] (start))
+  
 
 ;; ## Playground
 (comment

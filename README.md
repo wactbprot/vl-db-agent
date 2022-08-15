@@ -63,3 +63,17 @@ upload:
 ```shell
 scp -r docs/ bock04@a75438://var/www/html/vl-docsrv/
 ```
+
+
+### Build uberjar
+
+```shell
+clj -T:build all
+```
+
+
+upload:
+
+```shell
+scp -r target/vl-docsrv-x.y.z.jar bock04@a75438://var/www/html/vle/vl-docsrv
+```
