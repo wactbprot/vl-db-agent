@@ -30,7 +30,23 @@ use e.g. `curl`:
 curl -H "$H" -d "$D" -X POST $URL/cal-2022-se3-pn-4025_0007 --noproxy "*"
 ```
 
+The old system allows to write multiple results to one path:
 
+```shell
+D='{"DocPath": "Calibration.Measurement.Values.Temperature",
+    "Results":[{"Value":23.1, "Type":"ch1", "Unit":"C"},
+	           {"Value":23.2, "Type":"ch2", "Unit":"C"},
+			   {"Value":23.3, "Type":"ch3", "Unit":"C"}]}'
+```
+
+**vl-docsrv** accepts a `DocPaths` key provides a way to write results to multiple pathes:
+
+```shell
+D='{"DocPaths": ["Calibration.Measurement.Values.Pressure",
+                 "Calibration.Measurement.Values.Slope"],
+    "Results":[{"Value":1e-6, "Type":"ind",      "Unit":"DCR"}, 
+	           {"Value":1e-8, "Type":"ind_rise", "Unit":"DCR/s"}]}'
+```
 
 ## Generate api docs
 

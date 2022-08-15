@@ -64,15 +64,17 @@
 
 ;; ## Handler
 
-;; The handler gets the `doc`ument and the `data` stores the results
+;; The handler receives the `doc`ument and the `data` stores the results
 ;; by means of [vl-data-insert](https://github.com/wactbprot/vl-data-insert)
-;; and puts the result back to the database.
+;; and calls `put-fn`. 
 
-(defn store-data [doc {:keys [DocPath Results] :as data} put-fn]
-  (-> doc
-      (i/store-results Results DocPath)
-      (put-fn)))
-
+(defn store-data [doc {:keys [DocPaths DocPath Results] :as data} put-fn]
+  (µ/trace ::store-data [:function "core/store-data"]
+           (put-fn
+            (reduce
+             (fn [d [r p]] (i/store-results d [r] p))
+             doc (zipmap Results (if-not DocPaths (repeat DocPath) DocPaths))))))
+  
 ;; ## Checks
 
 ;; Some simple checks about the shape of the `data` and the `doc`
@@ -87,9 +89,23 @@
 
 (defn docpath-ok? [s] (and (string? s) (not (empty? s))))
 
-(defn data-ok? [{:keys [DocPath Results]}]
-  (and (docpath-ok? DocPath)
-       (results-ok? Results)))
+;; **vl-docsrv** provides the opportunity to store `Results` to
+;; different locations in one request. This is done by means of a
+;; vector called `DocPaths`.  `DocPaths` must have the same length as
+;; `Results`.
+
+(defn docpaths-ok? [p r] (and (vector? p)
+                              (vector? r)
+                              (= (count p) (count r))
+                              (empty? (filterv empty? p))))
+
+;; The new key `DocPaths` is evaluated with preference. 
+(defn data-ok? [{:keys [DocPaths DocPath Results]}]
+  (if DocPaths
+    (and (docpaths-ok? DocPaths Results)
+         (results-ok? Results))
+    (and (docpath-ok? DocPath)
+       (results-ok? Results))))
 
 ;; ## Route and agent
 
@@ -115,15 +131,18 @@
         (let [doc (get-doc id db)
               put-fn (fn [doc] (put-doc doc db))
               data   (-> req :body)]
+          (µ/log ::proc :doc-id id :data data)
           (if (and (data-ok? data) (doc-ok? doc))
             (do
               (send a (fn [m] (assoc m id (store-data doc data put-fn))))
               (await a)
               (res/response (get @a id)))
             (do
-              (-> {:error "missing database doc or maleformed request data"}
-                  (res/response)
-                  (res/status 412)))))))
+              (let [msg "missing database doc or maleformed request data"]
+                (µ/log ::proc :error msg)
+                (-> {:error msg}
+                    (res/response)
+                    (res/status 412))))))))
 
 ;; The first `if` clause (the happy path) contains the central idea:
 ;; the request is send to
@@ -143,8 +162,8 @@
 
 ;; The `init-key`s methods read a confoguration and return an implementation.
 
-(defmethod ig/init-key :endpoint/results [_ {:keys [db a]}]
-  (proc db a))
+(defmethod ig/init-key :endpoint/results [_ {:keys [db agnt]}]
+  (proc db agnt))
 
 (defmethod ig/init-key :log/mulog [_ opts]  
   (µ/set-global-context! (:log-context opts))
@@ -153,9 +172,15 @@
 (defmethod ig/init-key :db/couch [_ opts]
   (db-config opts))
 
+;; Initialization of the agent. The error handler function los the
+;; error and spits out the **state** of the agent **before the error**
+;; occured so that the agent can be restarted by means
+;; of [restart-agent](https://clojuredocs.org/clojure.core/restart-agent)
 (defmethod ig/init-key :system/agent [_ {:keys [ini]}]
-  ;; ToDo: add error function
-  (agent ini))
+  
+  (agent ini :error-handler (fn [a e]
+                               (µ/log ::agent-error-handler :error  e)
+                               (prn @a))))
 
 (defmethod ig/init-key :server/http-kit [_ {:keys [handler json-opt] :as opts}]
   (run-server (-> handler
@@ -186,6 +211,7 @@
 ;; ### Stop system
 
 (defn stop []
+  (µ/log ::start :message "halt system")
   (ig/halt! @system)
   (reset! system {}))
 
