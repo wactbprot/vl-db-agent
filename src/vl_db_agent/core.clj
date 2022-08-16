@@ -81,12 +81,7 @@
 
 (defn doc-ok? [{:keys [_id _rev]}] (and _id _rev))
 
-(defn results-ok? [v]
-  (let [n (count v)
-        m (count (filter map? v))
-        o (count (filter empty? v))]
-    (and (vector? v) (= n m) (zero? o))))
-
+(defn results-ok? [v] (and (vector? v) (empty? (filter empty? v))))
 
 ;; **vl-db-agent** provides the opportunity to store `Result` to
 ;; different locations in one request. This is done by means of a
