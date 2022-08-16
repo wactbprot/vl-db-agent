@@ -19,10 +19,10 @@ URL=http://localhost:9992
 
 ```
 
-and give some data with `Results` and a `DocPath`:
+and give some data with `Result` and a `DocPath`:
 
 ```shell
-D='{"DocPath": "Calibration.Measurement.Values.Pressure", "Results":[{"Value":100, "Type":"ind", "Unit":"Pa"}]}'
+D='{"DocPath": "Calibration.Measurement.Values.Pressure", "Result":[{"Value":100, "Type":"ind", "Unit":"Pa"}]}'
 ```
 
 use e.g. `curl`:
@@ -35,17 +35,17 @@ The old system allows to write multiple results to one path:
 
 ```shell
 D='{"DocPath": "Calibration.Measurement.Values.Temperature",
-    "Results":[{"Value":23.1, "Type":"ch1", "Unit":"C"},
+    "Result":[{"Value":23.1, "Type":"ch1", "Unit":"C"},
 	           {"Value":23.2, "Type":"ch2", "Unit":"C"},
 			   {"Value":23.3, "Type":"ch3", "Unit":"C"}]}'
 ```
 
-**vl-db-agent** accepts a `DocPaths` key provides a way to write results to multiple pathes:
+**vl-db-agent** accepts  `DocPath` to be a vector which provides a way to write results to multiple pathes:
 
 ```shell
-D='{"DocPaths": ["Calibration.Measurement.Values.Pressure",
+D='{"DocPath": ["Calibration.Measurement.Values.Pressure",
                  "Calibration.Measurement.Values.Slope"],
-    "Results":[{"Value":1e-6, "Type":"ind",      "Unit":"DCR"}, 
+    "Result":[{"Value":1e-6, "Type":"ind",      "Unit":"DCR"}, 
 	           {"Value":1e-8, "Type":"ind_rise", "Unit":"DCR/s"}]}'
 ```
 
@@ -76,5 +76,5 @@ clj -T:build all
 upload:
 
 ```shell
-scp -r target/vl-db-agent-*.jar bock04@a75438://var/www/html/vle/vl-db-agent
+scp -r target/vl-db-agent-x.y.z.jar bock04@a75438://var/www/html/vl-db-agent
 ```

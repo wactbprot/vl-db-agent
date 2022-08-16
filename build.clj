@@ -2,7 +2,7 @@
   (:require [clojure.tools.build.api :as b]))
 
 (def lib 'de.ptb.gitlab1.vaclab/vl-db-agent)
-(def version (format "0.3.%s" (b/git-count-revs nil)))
+(def version (format "0.4.%s" (b/git-count-revs nil)))
 (def class-dir "target/classes")
 (def basis (b/create-basis {:project "deps.edn" :aliases [:dev]}))
 (def uber-file (format "target/%s-%s.jar" (name lib) version))

@@ -68,12 +68,12 @@
 ;; by means of [vl-data-insert](https://github.com/wactbprot/vl-data-insert)
 ;; and calls `put-fn`. 
 
-(defn store-data [doc {:keys [DocPaths DocPath Results] :as data} put-fn]
+(defn store-data [doc {:keys [DocPath Result] :as data} put-fn]
   (µ/trace ::store-data [:function "core/store-data"]
            (put-fn
             (reduce
              (fn [d [r p]] (i/store-results d [r] p))
-             doc (zipmap Results (if-not DocPaths (repeat DocPath) DocPaths))))))
+             doc (zipmap Result (if (string? DocPath) (repeat DocPath) DocPath))))))
 
 ;; ## Checks
 
@@ -87,25 +87,24 @@
         o (count (filter empty? v))]
     (and (vector? v) (= n m) (zero? o))))
 
-(defn docpath-ok? [s] (and (string? s) (not (empty? s))))
 
-;; **vl-db-agent** provides the opportunity to store `Results` to
+;; **vl-db-agent** provides the opportunity to store `Result` to
 ;; different locations in one request. This is done by means of a
-;; vector called `DocPaths`.  `DocPaths` must have the same length as
-;; `Results`.
+;; using a vector for `DocPath` instead of a string. If `DocPath` is a
+;; vector it must have the same length as `Result`.
 
-(defn docpaths-ok? [p r] (and (vector? p)
-                              (vector? r)
-                              (= (count p) (count r))
-                              (empty? (filterv empty? p))))
+(defn docpath-ok? [p r]
+  (if (string? p)
+    (not (empty? p))
+    (and (vector? p)
+         (vector? r)
+         (= (count p) (count r))
+         (empty? (filterv empty? p)))))
 
-;; The new key `DocPaths` is evaluated with preference. 
-(defn data-ok? [{:keys [DocPaths DocPath Results]}]
-  (if DocPaths
-    (and (docpaths-ok? DocPaths Results)
-         (results-ok? Results))
-    (and (docpath-ok? DocPath)
-         (results-ok? Results))))
+;; The new key `DocPath` is evaluated with preference. 
+(defn data-ok? [{:keys [DocPath Result]}]
+    (and (docpath-ok? DocPath Result)
+         (results-ok? Result)))
 
 ;; ## Route and agent
 
