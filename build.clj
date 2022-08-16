@@ -1,7 +1,7 @@
 (ns build
   (:require [clojure.tools.build.api :as b]))
 
-(def lib 'de.ptb.gitlab1.vaclab/vl-docsrv)
+(def lib 'de.ptb.gitlab1.vaclab/vl-db-agent)
 (def version (format "0.3.%s" (b/git-count-revs nil)))
 (def class-dir "target/classes")
 (def basis (b/create-basis {:project "deps.edn" :aliases [:dev]}))
@@ -24,7 +24,7 @@
                   :src-dirs ["src"]
                   :class-dir class-dir})
   (b/uber {:class-dir class-dir
-           :main 'vl-docsrv.core
+           :main 'vl-db-agent.core
            :uber-file uber-file
            :basis basis}))
 

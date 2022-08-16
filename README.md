@@ -1,12 +1,12 @@
-vl-docsrv
+vl-db-agent
 ---------
 
 Metis and DevProxy both write data to vaclab style calibration
 documents. There is a small chance that conflicts occur due to
-uncoordinated writing.  vl-docsrv provides an API for coordinated
+uncoordinated writing.  vl-db-agent provides an API for coordinated
 writing of vaclab style measurement results to calibration documents.
 
-[⇨ documentation](https://a75438.berlin.ptb.de/vl-docsrv/docs/uberdoc.html)
+[⇨ documentation](https://a75438.berlin.ptb.de/vl-db-agent/docs/uberdoc.html)
 
 ## Usage
 
@@ -39,7 +39,7 @@ D='{"DocPath": "Calibration.Measurement.Values.Temperature",
 			   {"Value":23.3, "Type":"ch3", "Unit":"C"}]}'
 ```
 
-**vl-docsrv** accepts a `DocPaths` key provides a way to write results to multiple pathes:
+**vl-db-agent** accepts a `DocPaths` key provides a way to write results to multiple pathes:
 
 ```shell
 D='{"DocPaths": ["Calibration.Measurement.Values.Pressure",
@@ -61,7 +61,7 @@ clojure -X:dev:docs
 upload:
 
 ```shell
-scp -r docs/ bock04@a75438://var/www/html/vl-docsrv/
+scp -r docs/ bock04@a75438://var/www/html/vl-db-agent/
 ```
 
 
@@ -75,5 +75,5 @@ clj -T:build all
 upload:
 
 ```shell
-scp -r target/vl-docsrv-x.y.z.jar bock04@a75438://var/www/html/vle/vl-docsrv
+scp -r target/vl-db-agent-x.y.z.jar bock04@a75438://var/www/html/vle/vl-db-agent
 ```

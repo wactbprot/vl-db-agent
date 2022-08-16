@@ -15,10 +15,10 @@
 
            :docs {:extra-deps {zilti/marginalia {:git/url "https://github.com/wactbprot/marginalia"
                                            :git/sha "0f47c0e8167807225bc4c4dfc1b0a49d80b82648"}}
-                  :main-opts ["-m" "marginalia.core" "-n" "vl-docsrv"]
+                  :main-opts ["-m" "marginalia.core" "-n" "vl-db-agent"]
                   :exec-fn marginalia.core/run-marginalia}
            
-           :dev {:extra-paths ["src" "resources"]
+           :dev {:extra-paths ["src"]
                  :extra-deps {de.ptb.gitlab1/libcdb {:local/root "../libcdb"}
                               org.clojars.wactbprot/vl-data-insert {:mvn/version "0.2.1"}
                               http-kit/http-kit {:mvn/version "2.6.0"}
