@@ -7,6 +7,7 @@ uncoordinated writing.  vl-db-agent provides an API for coordinated
 writing of vaclab style measurement results to calibration documents.
 
 [⇨ documentation](https://a75438.berlin.ptb.de/vl-db-agent/docs/uberdoc.html)
+[⇨ jar](https://a75438.berlin.ptb.de/vl-db-agent/)
 
 ## Usage
 
@@ -75,5 +76,5 @@ clj -T:build all
 upload:
 
 ```shell
-scp -r target/vl-db-agent-x.y.z.jar bock04@a75438://var/www/html/vle/vl-db-agent
+scp -r target/vl-db-agent-*.jar bock04@a75438://var/www/html/vle/vl-db-agent
 ```
