@@ -106,7 +106,7 @@
 ;; **vl-db-agent** provides one `POST` route: `/<database document id>`.
 ;; The *README* contains curl examples. 
 (defn proc [db a]
-  (POST "/:id" [id :as req]
+   (POST "/:id" [id :as req]
         (let [doc    (get-doc id db)
               data   (-> req :body)
               put-fn (fn [doc] (put-doc doc db))]
@@ -114,20 +114,18 @@
           (if (and (data-ok? data) (doc-ok? doc))
             (do
               (send a (fn [m] (assoc m id (store-data doc data put-fn))))
-              (await a)
-              (res/response (get @a id)))
+              (res/response {:ok true}))
             (do
               (let [msg "missing database doc or maleformed request data"]
                 (µ/log ::proc :error msg)
                 (-> {:error msg}
-                    (res/response)
-                    (res/status 412))))))))
+                    (res/status 412)
+                    (res/response))))))))
 
 ;; The first `if` clause (the happy path) contains the central idea:
 ;; the request is send to
-;; an [agent](https://clojure.org/reference/agents) `a` followed by
-;; `await`. This queues up the write requests and avoids *write
-;; conflicts*
+;; an [agent](https://clojure.org/reference/agents) `a`. This queues
+;; up the write requests and avoids *write conflicts*
 
 ;; ## System
 
@@ -155,7 +153,6 @@
 ;; occured so that the agent can be restarted by means
 ;; of [restart-agent](https://clojuredocs.org/clojure.core/restart-agent)
 (defmethod ig/init-key :system/agent [_ {:keys [ini]}]
-  
   (agent ini :error-handler (fn [a e] (µ/log ::agent-error-handler
                                             :error e
                                             :agent @a))))
@@ -192,7 +189,10 @@
   (ig/halt! @system)
   (reset! system {}))
 
-(defn restart [] (stop) (start))
+(defn restart []
+  (stop)
+  (Thread/sleep 1000)
+  (start))
 
 ;; ## Main
 ;; The `-main` function is called when `java -jar vl-db-agent.jar`
