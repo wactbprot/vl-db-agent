@@ -1,3 +1,4 @@
+;; # Rationale
 ;; [Metis](https://gitlab1.ptb.de/vaclab/metis)
 ;; and [DevProxy](https://gitlab1.ptb.de/vaclab/devproxy) both write
 ;; data direct to calibration documents. With this setup there is a
@@ -6,7 +7,6 @@
 ;;
 ;; **vl-db-agent** provides an endpoint for coordinated writing of
 ;; vaclab style measurement results to calibration documents.
-
 (ns vl-db-agent.core
   ^{:author "Thomas Bock <thomas.bock@ptb.de>"}
   (:require  [compojure.core :refer [POST]]
@@ -21,13 +21,10 @@
              [vl-data-insert.core :as i])
   (:gen-class))
 
-
-;; ## Configuration
-
+;; # Configuration
 ;; **vl-db-agent** uses [integrant](https://github.com/weavejester/integrant).
 ;; This enables a controlled way to start and stop the system.
 ;; **integrant** style configuration map.
-
 (def config
   {:log/mulog {:type :multi
                :log-context {:app-name "vl-db-agent"
@@ -54,21 +51,17 @@
                      :json-opt {:keywords? true}
                      :handler (ig/ref :endpoint/results)}})
 
-;; ## Database io functions
-
+;; # Database io functions
 ;; The three functions used here are simply passed through from
 ;; library [libcdb](https://gitlab1.ptb.de/vaclab/vl-db)
-
 (defn db-config [opts] (cf/config opts))
 (defn get-doc [id db] (db/get-doc id db))
 (defn put-doc [doc db] (db/put-doc doc db))
 
-;; ## Handler
-
+;; # Handler
 ;; The handler receives the `doc`ument and the `data` stores the results
 ;; by means of [vl-data-insert](https://github.com/wactbprot/vl-data-insert)
 ;; and calls `put-fn`. 
-
 (defn store-data [doc {:keys [DocPath Result] :as data} put-fn]
   (µ/trace ::store-data [:function "core/store-data"]
            (put-fn
@@ -76,19 +69,15 @@
              (fn [d [r p]] (i/store-results d [r] p))
              doc (zipmap Result (if (string? DocPath) (repeat DocPath) DocPath))))))
 
-;; ## Checks
-
+;; # Checks
 ;; Some simple checks about the shape of the `data` and the `doc`
-
 (defn doc-ok? [{:keys [_id _rev]}] (and _id _rev))
-
 (defn results-ok? [v] (and (vector? v) (empty? (filter empty? v))))
 
 ;; **vl-db-agent** provides the opportunity to store `Result` to
 ;; different locations in one request. This is done by means of a
 ;; using a vector for `DocPath` instead of a string. If `DocPath` is a
 ;; vector it must have the same length as `Result`.
-
 (defn docpath-ok? [p r]
   (if (string? p)
     (not (empty? p))
@@ -97,15 +86,13 @@
          (= (count p) (count r))
          (empty? (filterv empty? p)))))
 
-;; The new key `DocPath` is evaluated with preference. 
 (defn data-ok? [{:keys [DocPath Result]}]
     (and (docpath-ok? DocPath Result)
          (results-ok? Result)))
 
-;; ## Route and agent
-
-;; **vl-db-agent** provides one `POST` route: `/<database document id>`.
-;; The *README* contains curl examples. 
+;; # Route and agent
+;; **vl-db-agent** provides one `POST` route: `/<database document id>`
+;; (the README contains curl examples).
 (defn proc [db a]
    (POST "/:id" [id :as req]
         (let [doc    (get-doc id db)
@@ -128,17 +115,15 @@
 ;; an [agent](https://clojure.org/reference/agents) `a`. This queues
 ;; up the write requests and avoids *write conflicts*
 
-;; ## System
-
+;; # System
 ;; The entire system is stored in an `atom` that is build up by the
 ;; following `init-key` multimethods and shut down by `halt-key!`
 ;; multimethods.
-
-
 ;; ### System up multimethods
 (defonce system (atom nil))
 
-;; The `init-key`s methods **read a configuration** and **return an implementation**.
+;; The `init-key`s methods **read a configuration** and **return an
+;; implementation**.
 (defmethod ig/init-key :endpoint/results [_ {:keys [db agnt]}]
   (proc db agnt))
 
@@ -165,11 +150,9 @@
               (-> opts
                   (dissoc :handler))))
 
-;; ### System down multimethods
-;;
+;; ## System down multimethods
 ;; The `halt-keys!` methods **read in the implementation** and shut down
 ;; this implementation in a contolled way. This is a pure side effect.
-
 (defmethod ig/halt-key! :server/http-kit [_ server]
   (server))
 
@@ -179,9 +162,8 @@
 (defmethod ig/halt-key! :system/agent [_ a]
   (send a (fn [_] {})))
 
-;; ### Start, stop and restart
-;; The following functions are intended for REPL usage.
-
+;; ## Start, stop and restart The following functions are intended
+;; for [REPL](https://clojure.org/guides/repl/introduction) usage.
 (defn start []
   (keys (reset! system (ig/init config))))
 
@@ -195,13 +177,13 @@
   (Thread/sleep 1000)
   (start))
 
-;; ## Main
+;; # Main
 ;; The `-main` function is called when `java -jar vl-db-agent.jar`
 ;; is executed. No arguments are implemented so far.
 (defn -main [& args] (start))
 
 
-;; ## Playground
+;; # Playground
 (comment
   (start)
   (stop)
