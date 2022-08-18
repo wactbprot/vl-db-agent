@@ -30,7 +30,8 @@
 
 (def config
   {:log/mulog {:type :multi
-               :log-context {:facility (or (System/getenv "DEVPROXY_FACILITY")
+               :log-context {:app-name "vl-db-agent"
+                             :facility (or (System/getenv "DEVPROXY_FACILITY")
                                            (System/getenv "DEVHUB_FACILITY")
                                            (System/getenv "METIS_FACILITY"))}
                :publishers[{:type :elasticsearch
@@ -110,9 +111,9 @@
         (let [doc    (get-doc id db)
               data   (-> req :body)
               put-fn (fn [doc] (put-doc doc db))]
-          (µ/log ::proc :doc-id id :data data)
           (if (and (data-ok? data) (doc-ok? doc))
             (do
+              (µ/log ::proc :doc-id id :message "doc and data ok")
               (send a (fn [m] (assoc m id (store-data doc data put-fn))))
               (res/response {:ok true}))
             (do
