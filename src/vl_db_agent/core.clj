@@ -104,7 +104,9 @@
                (send a (fn [m] (assoc m
                                      id {:res (store-data get-fn data put-fn)
                                          :data data})))
-               (res/response {:ok true}))
+               (-> {:ok true}
+                   (res/status 202)
+                   (res/response)))
              (do
                (let [msg "missing database doc or maleformed request data"]
                  (µ/log ::proc :error msg)
