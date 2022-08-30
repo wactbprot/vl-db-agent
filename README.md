@@ -45,7 +45,7 @@ D='{"DocPath": "Calibration.Measurement.Values.Temperature",
 ```shell
 D='{"DocPath": ["Calibration.Measurement.Values.Pressure",
                  "Calibration.Measurement.Values.Slope"],
-    "Result":[{"Value":1e-6, "Type":"ind",      "Unit":"DCR"}, 
+    "Result":[{"Value":1e-6, "Type":"ind",      "Unit":"DCR"},
 	           {"Value":1e-8, "Type":"ind_rise", "Unit":"DCR/s"}]}'
 ```
 
@@ -55,7 +55,7 @@ copy `vendor` folder from [marginalia](https://github.com/wactbprot/marginalia) 
 
 
 ```shell
-clojure -X:dev:docs
+clojure -M:docs
 ```
 
 

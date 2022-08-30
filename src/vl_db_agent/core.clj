@@ -130,7 +130,7 @@
 (defmethod ig/init-key :log/mulog [_ opts]  
   (µ/set-global-context! (:log-context opts))
   (µ/start-publisher! opts))
-
+ 
 (defmethod ig/init-key :db/couch [_ opts]
   (db-config opts))
 
