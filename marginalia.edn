@@ -1,0 +1,4 @@
+{;; configuration map for marginalia
+ :name "vl-db-agent"
+ :version "1.0.0"
+ :description "Provides an API for coordinated database writing"}

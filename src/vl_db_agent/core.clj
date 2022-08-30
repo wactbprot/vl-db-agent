@@ -1,12 +1,57 @@
 ;; # Rationale
-;; [Metis](https://gitlab1.ptb.de/vaclab/metis)
-;; and [DevProxy](https://gitlab1.ptb.de/vaclab/devproxy) both write
-;; data direct to calibration documents. With this setup there is a
-;; small chance that conflicts occur due to uncoordinated writing. The
-;; workaround so far was sequencing related steps.
+;;
+;; In some cases [Metis](https://gitlab1.ptb.de/vaclab/metis) (A)
+;; and [DevProxy](https://gitlab1.ptb.de/vaclab/devproxy) (B) both
+;; write data direct to the same calibration document. With this setup
+;; there is a chance that conflicts occur due to uncoordinated
+;; writing. A and B try to store the document with `rev 1`.  If A
+;; writes first a `rev 2` is generated. The attempt of B to write `rev 1`
+;; fails. Same if B writes first.
+
+;; <pre>
+;;     ┌─────┐        ┌─────┐
+;;     │     │        │     │
+;;     │  A  │        │  B  │
+;;     │     │        │     │
+;;     └─┬──▲┘        └▲──┬─┘
+;;       │  │          │  │
+;; rev 1 │  ✓ ┌──────┐ ✓  │ rev 1
+;;       │  └─┤      ├─┘  │
+;;       ✓    │  DB  │    x
+;;       └────►      ◄────┘
+;;            └──────┘
+;; </pre>
+;;   
+;;
+;; The workaround so far was sequencing related steps.
 ;;
 ;; **vl-db-agent** provides an endpoint for coordinated writing of
-;; vaclab style measurement results to calibration documents.
+;; vaclab style measurement results (`data) to calibration
+;; documents. This is realized by means of a
+;; clojure [agent](https://clojure.org/reference/agents).
+;;
+;; <pre>
+;;       ┌─────┐        ┌─────┐
+;;       │     │        │     │
+;;       │  A  │        │  B  │
+;;       │     │        │     │
+;;       └┬────┘        └────┬┘
+;;        │                  │
+;;  data  │ ┌──────────────┐ │  data
+;;        │ │              │ │
+;;        └─►   db-agent   ◄─┘
+;;          │              │
+;;          │ rev 1  rev 2 │
+;;          └─▲──┬───▲──┬──┘
+;;            |  |   |  |
+;;            ✓  ✓   ✓  ✓
+;;            |  |   |  |
+;;          ┌─┴──▼───┴──▼──┐
+;;          │              │
+;;          │      DB      │
+;;          │              │
+;;          └──────────────┘
+;; </pre>
 (ns vl-db-agent.core
   ^{:author "Thomas Bock <thomas.bock@ptb.de>"}
   (:require  [compojure.core :refer [POST]]
@@ -117,8 +162,8 @@
 ;; The first `if` clause (the happy path) contains the central idea:
 ;; the request is send to
 ;; an [agent](https://clojure.org/reference/agents) `a`. This queues
-;; up the write requests and avoids *write conflicts*. The important
-;; thing is: reading **and** writing of the database document must be
+;; up the write requests and avoids *write conflicts*. The **important thing**
+;; is: reading **and** writing of the database document must be
 ;; placed **inside** the agents `send` function.
 
 ;; # System
