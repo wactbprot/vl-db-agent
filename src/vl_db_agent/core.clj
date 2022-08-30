@@ -62,16 +62,16 @@
 ;; The handler receives the `doc`ument and the `data` stores the results
 ;; by means of [vl-data-insert](https://github.com/wactbprot/vl-data-insert)
 ;; and calls `put-fn`. 
-(defn store-data [doc {:keys [DocPath Result] :as data} put-fn]
+(defn store-data [get-fn {:keys [DocPath Result] :as data} put-fn]
   (µ/trace ::store-data [:function "core/store-data"]
-           (put-fn
-            (reduce
-             (fn [d [r p]] (i/store-results d [r] p))
-             doc (zipmap Result (if (string? DocPath) (repeat DocPath) DocPath))))))
+           (let [doc (get-fn)]
+             (put-fn
+              (reduce
+               (fn [d [r p]] (i/store-results d [r] p))
+               doc (zipmap Result (if (string? DocPath) (repeat DocPath) DocPath)))))))
 
 ;; # Checks
-;; Some simple checks about the shape of the `data` and the `doc`
-(defn doc-ok? [{:keys [_id _rev]}] (and _id _rev))
+;; Some simple checks about the shape of the `data`
 (defn results-ok? [v] (and (vector? v) (empty? (filter empty? v))))
 
 ;; **vl-db-agent** provides the opportunity to store `Result` to
@@ -95,25 +95,29 @@
 ;; (the README contains curl examples).
 (defn proc [db a]
    (POST "/:id" [id :as req]
-        (let [doc    (get-doc id db)
-              data   (-> req :body)
-              put-fn (fn [doc] (put-doc doc db))]
-          (if (and (data-ok? data) (doc-ok? doc))
-            (do
-              (µ/log ::proc :doc-id id :message "doc and data ok")
-              (send a (fn [m] (assoc m id (store-data doc data put-fn))))
-              (res/response {:ok true}))
-            (do
-              (let [msg "missing database doc or maleformed request data"]
-                (µ/log ::proc :error msg)
-                (-> {:error msg}
-                    (res/status 412)
-                    (res/response))))))))
+         (let [data   (-> req :body)
+               get-fn (fn [] (get-doc id db))
+               put-fn (fn [doc] (put-doc doc db))]
+           (if (data-ok? data)
+             (do
+               (µ/log ::proc :doc-id id :message "doc and data ok")
+               (send a (fn [m] (assoc m
+                                     id {:res (store-data get-fn data put-fn)
+                                         :data data})))
+               (res/response {:ok true}))
+             (do
+               (let [msg "missing database doc or maleformed request data"]
+                 (µ/log ::proc :error msg)
+                 (-> {:error msg}
+                     (res/status 412)
+                     (res/response))))))))
 
 ;; The first `if` clause (the happy path) contains the central idea:
 ;; the request is send to
 ;; an [agent](https://clojure.org/reference/agents) `a`. This queues
-;; up the write requests and avoids *write conflicts*
+;; up the write requests and avoids *write conflicts*. The important
+;; thing is: reading **and** writing of the database document must be
+;; placed **inside** the agents `send` function.
 
 ;; # System
 ;; The entire system is stored in an `atom` that is build up by the
@@ -187,4 +191,7 @@
 (comment
   (start)
   (stop)
-  (restart))
+  (restart)
+  (:system/agent @system)
+  (agent-error (:system/agent @system))
+  (map (comp :ok :res) (vals @(:system/agent @system))))
